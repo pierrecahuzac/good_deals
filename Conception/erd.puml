@@ -1,0 +1,96 @@
+@startuml ERD
+
+' Définition des entités
+entity User {
+  *id : UUID
+  **email : String (unique)**
+  name : String?
+  role : Role
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+entity Deal {
+  *id : UUID
+  **title : String**
+  description : String
+  price : Int
+  startingAt : DateTime
+  endingAt : DateTime
+  isPublished : Boolean
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+entity Tag {
+  *id : UUID
+  **name : String (unique)**
+}
+
+entity Vote {
+  *id : UUID
+  voteType : VoteType
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+entity Comment {
+  *id : UUID
+  **content : String**
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+entity Report {
+  *id : UUID
+  **content : String**
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+entity CommentVote {
+  *id : UUID
+  type : VoteType
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+' Définition des relations
+User "1" -- "0..*" Deal : crée
+User "1" -- "0..*" Comment : écrit
+User "1" -- "0..*" Vote : vote sur
+User "1" -- "0..*" CommentVote : vote sur
+User "1" -- "0..*" Report : signale
+
+Deal "1" -- "0..*" Vote : reçoit
+Deal "1" -- "0..*" Comment : contient
+Deal "1" -- "0..*" Report : peut être signalé
+Deal "0..*" -- "0..*" Tag : possède
+
+Comment "1" -- "0..*" Comment : réponse à
+Comment "1" -- "0..*" CommentVote : reçoit des votes
+Comment "1" -- "0..*" Report : peut être signalé
+
+Report "0..1" -- "1" User : fait par
+Report "0..1" -- "1" Deal : concerne (optionnel)
+Report "0..1" -- "1" Comment : concerne (optionnel)
+
+Vote "1" -- "1" User : fait par
+Vote "1" -- "1" Deal : concerne
+
+CommentVote "1" -- "1" User : fait par
+CommentVote "1" -- "1" Comment : concerne
+
+' Définition des enums
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum VoteType {
+  UP
+  DOWN
+}
+
+@enduml

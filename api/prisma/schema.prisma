@@ -14,7 +14,129 @@ datasource db {
 }
 
 model User {
-  id    String     @id @default(uuid())
-  email String  @unique
-  name  String?
+  id       String    @id @default(uuid())
+  email    String    @unique
+  name     String?
+  password String
+  role     Role      @default(USER)
+  deals    Deal[]
+  comments Comment[]
+  reports  Report[]
+  votes    Vote[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  CommentVote CommentVote[]
+}
+
+model Deal {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  tags        Tag[]
+  dealUrl     String? // URL to the deal (optional)
+  imageUrl    String? // URL to the image (optional)
+  price       Int
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  votes       Vote[]
+  comments    Comment[]
+  location    Location? @relation(fields: [locationId], references: [id]) // Relation to Location
+  locationId  String? // Store ID (optional)
+  startingAt  DateTime
+  endingAt    DateTime
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  reports     Report[]
+}
+
+model Tag {
+  id    String @id @default(uuid())
+  name  String
+  deals Deal[]
+}
+
+model Location {
+  id        String @id @default(uuid())
+  name      String // Store name (e.g., "Best Buy", "Walmart")
+  address   String // Full address
+  city      String // City
+  country   String // Country
+  latitude  Float? // GPS coordinate (optional)
+  longitude Float? // GPS coordinate (optional)
+
+  deals Deal[] // A store can have multiple deals
+}
+
+model Vote {
+  id       String   @id @default(uuid())
+  user     User     @relation(fields: [userId], references: [id])
+  userId   String
+  deal     Deal     @relation(fields: [dealId], references: [id])
+  dealId   String
+  voteType VoteType
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Comment {
+  id      String @id @default(uuid())
+  content String
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
+
+  // Auto-référence pour les réponses aux commentaires
+  parent   Comment?  @relation("ReplyTo", fields: [parentId], references: [id])
+  parentId String? // Peut être NULL si c'est un commentaire principal
+  replies  Comment[] @relation("ReplyTo") // Un commentaire peut avoir plusieurs réponses
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reports      Report[]
+  CommentVotes CommentVote[]
+  Deal         Deal?         @relation(fields: [dealId], references: [id])
+  dealId       String?
+}
+
+model Report {
+  id        String   @id @default(uuid())
+  content   String
+  user      User     @relation(fields: [userId], references: [id]) // Qui a signalé ?
+  userId    String
+  deal      Deal?    @relation(fields: [dealId], references: [id]) // Signalement d’un deal
+  dealId    String?
+  comment   Comment? @relation(fields: [commentId], references: [id]) // Signalement d’un commentaire
+  commentId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, dealId])
+}
+
+model CommentVote {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  comment   Comment  @relation(fields: [commentId], references: [id])
+  commentId String
+  type      VoteType
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, commentId])
+}
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum VoteType {
+  UP
+  DOWN
 }

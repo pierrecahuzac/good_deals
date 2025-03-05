@@ -1,24 +1,33 @@
 import { faker } from '@faker-js/faker';
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
+
 const prisma = new PrismaClient();
+
+console.log('Bcrypt:', bcrypt);
+console.log('Bcrypt hashSync:', bcrypt.hashSync);
 
 async function main() {
   const password: string = faker.internet.password();
-  console.log(password);
-  const passwordHashed: string = bcrypt.hashSync(password, 10);
-  console.log(passwordHashed);
-
-  const user = await prisma.user.create({
+ 
+ 
+  const passwordHashed: string = await bcrypt.hash(password, 10);
+let i = 0
+while (i < 50) {
+  
+ const user =  await prisma.user.create({
     data: {
       email: faker.internet.email(),
-      name: faker.person.lastName(),
+      username: faker.person.lastName(),
       role: 'USER',
       //@ts-ignore
       password: passwordHashed,
     },
   });
   console.log(user);
+  i++
+}
+ /// 
 }
 main()
   .then(async () => {

@@ -4,11 +4,15 @@ services:
     build:
       context: ./app
       dockerfile: dockerFile
+    environment:
+      # - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      # - NODE_ENV=development
     env_file:
       - .env
-    # volumes:
-    #   - ./app:/app
-    #   - /app/node_modules
+    volumes:
+      - ./app:/usr/src/app
+      - /usr/src/app/node_modules
     ports:
       - 3000:3000
     networks:
@@ -18,15 +22,17 @@ services:
     build:
       context: ./api
       dockerfile: dockerFile
-    # volumes:
-    #   - ./api:/app
-    #   - /api/node_modules
+    volumes:
+      - ./api:/usr/src/api
+      - /usr/src/api/node_modules
     ports:
-      - 3001:3000
-    env_file:
-      - .env
+      - 3001:3001
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - PORT=3001
     networks:
       - goods_deals
+
   db:
     container_name: db
     image: postgres:16
@@ -39,6 +45,20 @@ services:
     networks:
       - goods_deals
 
+  prisma-studio:
+    image: node:lts-alpine3.17
+    working_dir: /usr/src/api
+    volumes:
+      - ./api/prisma:/usr/src/api/prisma
+    command: npx prisma studio
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    networks:
+      - goods_deals
+    depends_on:
+      - db
   adminer:
     container_name: adminer
     image: adminer

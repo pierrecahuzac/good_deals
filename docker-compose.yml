@@ -4,17 +4,13 @@ services:
     build:
       context: ./app
       dockerfile: dockerFile
-    environment:
-      # - WATCHPACK_POLLING=true
-      - CHOKIDAR_USEPOLLING=true
-      # - NODE_ENV=development
     env_file:
       - .env
     volumes:
-      - ./app:/usr/src/app
-      - /usr/src/app/node_modules
+      - ./app:/app
+      - /app/node_modules
     ports:
-      - 3000:3000
+      - 5173:5173
     networks:
       - goods_deals
   api:
@@ -46,6 +42,7 @@ services:
       - goods_deals
 
   prisma-studio:
+    container_name: prisma-studio
     image: node:lts-alpine3.17
     working_dir: /usr/src/api
     volumes:
